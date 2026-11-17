@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Automotive Diagnostic System</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #090d14;
+            --panel: #111925;
+            --panel-light: #182333;
+            --border: #263447;
+            --text: #e8f0fa;
+            --muted: #71849c;
+            --accent: #00c8ff;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* CABEÇALHO */
+
+        header {
+            height: 75px;
+            padding: 0 5%;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background: #0d141f;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .brand h1 {
+            font-size: 17px;
+            letter-spacing: 2px;
+        }
+
+        .brand p {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+
+        .header-info {
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        /* CONTEÚDO */
+
+        main {
+            max-width: 1250px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            margin-bottom: 25px;
+        }
+
+        .page-title h2 {
+            font-size: 13px;
+            letter-spacing: 3px;
+            color: var(--accent);
+        }
+
+        .page-title p {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* PAINEL PRINCIPAL */
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 310px;
+            gap: 20px;
+        }
+
+        .panel {
+            background: linear-gradient(
+                145deg,
+                #151f2d,
+                #0f1722
+            );
+
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 25px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .panel-header h3 {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #a9bbd0;
+        }
+
+        .live-label {
+            color: #00d68f;
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* TACÔMETRO */
+
+        .tachometer {
+            max-width: 600px;
+            width: 100%;
+            margin: auto;
+        }
+
+        .tachometer svg {
+            width: 100%;
+            overflow: visible;
+        }
+
+        .gauge-background {
+            fill: none;
+            stroke: #263548;
+            stroke-width: 15;
+            stroke-linecap: round;
+        }
+
+        .gauge-value {
+            fill: none;
+            stroke: #00d68f;
+            stroke-width: 15;
+            stroke-linecap: round;
+
+            transition:
+                stroke-dashoffset 0.2s linear,
+                stroke 0.4s ease,
+                filter 0.4s ease;
+        }
+
+        .gauge-redline {
+            fill: none;
+            stroke: #48232b;
+            stroke-width: 15;
+            stroke-linecap: round;
+        }
+
+        .gauge-label {
+            fill: #8294aa;
+            font-size: 13px;
+            text-anchor: middle;
+        }
+
+        .gauge-number {
+            fill: #e8f0fa;
+            font-size: 15px;
+            text-anchor: middle;
+            font-weight: bold;
+        }
+
+        .rpm-number {
+            fill: #ffffff;
+            font-size: 57px;
+            font-weight: bold;
+            text-anchor: middle;
+            font-family: Arial, sans-serif;
+
+            transition: color 0.4s ease;
+        }
+
+        .rpm-unit {
+            fill: #71849c;
+            font-size: 13px;
+            letter-spacing: 5px;
+            text-anchor: middle;
+        }
+
+        .engine-label {
+            fill: #71849c;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-anchor: middle;
+        }
+
+        /* BARRA DE RPM */
+
+        .rpm-bar-container {
+            margin-top: 20px;
+        }
+
+        .rpm-bar-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+
+        .rpm-bar {
+            height: 8px;
+            width: 100%;
+            background: #263548;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .rpm-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: #00d68f;
+            border-radius: 20px;
+
+            transition:
+                width 0.2s linear,
+                background 0.4s ease,
+                box-shadow 0.4s ease;
+        }
+
+        /* PAINEL LATERAL */
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .data-card {
+            background: linear-gradient(
+                145deg,
+                #182536,
+                #111925
+            );
+
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .data-title {
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .data-value {
+            margin-top: 13px;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .data-unit {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .data-description {
+            color: #657990;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .cyan {
+            color: var(--accent);
+        }
+
+        .green {
+            color: #00d68f;
+        }
+
+        .red {
+            color: #ff4545;
+        }
+
+        /* INFORMAÇÕES CAN */
+
+        .protocol-card {
+            background: #0c1420;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .protocol-card h3 {
+            font-size: 11px;
+            color: #a9bbd0;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .protocol-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 11px;
+        }
+
+        .protocol-row span:first-child {
+            color: var(--muted);
+        }
+
+        .protocol-row span:last-child {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* RODAPÉ */
+
+        footer {
+            max-width: 1250px;
+            margin: 25px auto;
+            padding: 20px;
+
+            border-top: 1px solid var(--border);
+
+            display: flex;
+            justify-content: space-between;
+
+            color: #52657c;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* RESPONSIVIDADE */
+
+        @media (max-width: 850px) {
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .side-panel {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .protocol-card {
+                grid-column: 1 / -1;
+            }
+
+        }
+
+        @media (max-width: 550px) {
+
+            header {
+                padding: 0 15px;
+            }
+
+            .brand h1 {
+                font-size: 12px;
+            }
+
+            .header-info {
+                display: none;
+            }
+
+            main {
+                margin-top: 20px;
+                padding: 0 12px;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+
+            .side-panel {
+                grid-template-columns: 1fr;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .rpm-number {
+                font-size: 48px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- CABEÇALHO -->
+
+    <header>
+
+        <div class="brand">
+
+            <div class="brand-icon">D</div>
+
+            <div>
+                <h1>DIAGNOSTIC SYSTEM</h1>
+                <p>AUTOMOTIVE SCANNER</p>
+            </div>
+
+        </div>
+
+        <div class="header-info">
+            EMBEDDED SYSTEMS | CAN BUS
+        </div>
+
+    </header>
+
+
+    <main>
+
+        <div class="page-title">
+
+            <h2>ENGINE MONITORING</h2>
+
+            <p>Monitoramento de parâmetros do motor em tempo real</p>
+
+        </div>
+
+
+        <div class="dashboard">
+
+
+            <!-- PAINEL DO TACÔMETRO -->
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <h3>ENGINE RPM</h3>
+
+                    <span class="live-label">
+                        ● LIVE DATA
+                    </span>
+
+                </div>
+
+
+                <div class="tachometer">
+
+                    <svg viewBox="0 0 500 300">
+
+                        <!-- ARCO DE FUNDO -->
+
+                        <path
+                            class="gauge-background"
+                            d="M 65 245 A 185 185 0 0 1 435 245"
+                        />
+
+
+                        <!-- ZONA VERMELHA -->
+
+                        <path
+                            class="gauge-redline"
+                            d="M 386 118 A 185 185 0 0 1 435 245"
+                        />
+
+
+                        <!-- ARCO DINÂMICO -->
+
+                        <path
+                            id="gauge"
+                            class="gauge-value"
+                            d="M 65 245 A 185 185 0 0 1 435 245"
+                        />
+
+
+                        <!-- ESCALA -->
+
+                        <text x="65" y="270" class="gauge-label">0</text>
+
+                        <text x="125" y="115" class="gauge-label">2000</text>
+
+                        <text x="250" y="55" class="gauge-label">4000</text>
+
+                        <text x="375" y="115" class="gauge-label">6000</text>
+
+                        <text x="435" y="270" class="gauge-label">8000</text>
+
+
+                        <!-- RPM CENTRAL -->
+
+                        <text
+                            id="rpm-number"
+                            x="250"
+                            y="190"
+                            class="rpm-number"
+                        >0</text>
+
+
+                        <text
+                            x="250"
+                            y="218"
+                            class="rpm-unit"
+                        >REV / MIN</text>
+
+
+                        <text
+                            x="250"
+                            y="242"
+                            class="engine-label"
+                        >ENGINE SPEED</text>
+
+                    </svg>
+
+                </div>
+
+
+                <!-- BARRA DE ROTAÇÃO -->
+
+                <div class="rpm-bar-container">
+
+                    <div class="rpm-bar-header">
+
+                        <span>ENGINE SPEED</span>
+
+                        <span id="rpm-percentage">0%</span>
+
+                    </div>
+
+                    <div class="rpm-bar">
+
+                        <div
+                            id="rpm-bar-fill"
+                            class="rpm-bar-fill"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PAINEL LATERAL -->
+
+            <aside class="side-panel">
+
+
+                <!-- RPM ATUAL -->
+
+                <div class="data-card">
+
+                    <div class="data-title">
+                        CURRENT RPM
+                    </div>
+
+                    <div class="data-value cyan">
+
+                        <span id="rpm-info">0</span>
+
+                        <span class="data-unit">RPM</span>
+
+                    </div>
+
+                    <div class="data-description">
+                        Rotação instantânea do motor
+                    </div>
+
+                </div>
+
+
+                <!-- RPM MÁXIMO -->
+
+                <div class="data-card">
+
+                    <div class="data-title">
+                        PEAK RPM
+                    </div>
+
+                    <div class="data-value green">
+
+                        <span id="peak-rpm">0</span>
+
+                        <span class="data-unit">RPM</span>
+
+                    </div>
+
+                    <div class="data-description">
+                        Maior rotação nesta sessão
+                    </div>
+
+                </div>
+
+
+                <!-- LIMITE -->
+
+                <div class="data-card">
+
+                    <div class="data-title">
+                        RPM LIMIT
+                    </div>
+
+                    <div class="data-value">
+                        8000
+                        <span class="data-unit">RPM</span>
+                    </div>
+
+                    <div class="data-description">
+                        Escala máxima configurada
+                    </div>
+
+                </div>
+
+
+                <!-- PROTOCOLO CAN -->
+
+                <div class="protocol-card">
+
+                    <h3>COMMUNICATION</h3>
+
+                    <div class="protocol-row">
+
+                        <span>Protocol</span>
+
+                        <span>CAN BUS</span>
+
+                    </div>
+
+                    <div class="protocol-row">
+
+                        <span>CAN ID</span>
+
+                        <span>0x100</span>
+
+                    </div>
+
+                    <div class="protocol-row">
+
+                        <span>Bitrate</span>
+
+                        <span>500 Kbit/s</span>
+
+                    </div>
+
+                    <div class="protocol-row">
+
+                        <span>Data length</span>
+
+                        <span>2 Bytes</span>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+
+    <footer>
+
+        <span>BEAGLEBONE BLACK | LINUX EMBEDDED</span>
+
+        <span>ESP32 + CAN BUS</span>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        const gauge = document.getElementById("gauge");
+
+        const rpmNumber = document.getElementById("rpm-number");
+
+        const rpmInfo = document.getElementById("rpm-info");
+
+        const peakRPM = document.getElementById("peak-rpm");
+
+        const rpmPercentage = document.getElementById("rpm-percentage");
+
+        const rpmBarFill = document.getElementById("rpm-bar-fill");
+
+
+        const MAX_RPM = 8000;
+
+        let maximumRPM = 0;
+
+
+        // Comprimento real do arco SVG.
+
+        const circumference = gauge.getTotalLength();
+
+        gauge.style.strokeDasharray = circumference;
+
+        gauge.style.strokeDashoffset = circumference;
+
+
+        // Atualiza o painel.
+
+        function updateRPM(rpm) {
+
+            rpm = Math.max(0, Math.min(rpm, MAX_RPM));
+
+
+            // Porcentagem da escala.
+
+            const percentage = rpm / MAX_RPM;
+
+            const percentageValue = percentage * 100;
+
+
+            // Atualiza o arco.
+
+            const offset = circumference * (1 - percentage);
+
+            gauge.style.strokeDashoffset = offset;
+
+
+            // Atualiza os números.
+
+            const formattedRPM = Math.round(rpm).toLocaleString("pt-BR");
+
+            rpmNumber.textContent = formattedRPM;
+
+            rpmInfo.textContent = formattedRPM;
+
+
+            // Atualiza porcentagem.
+
+            rpmPercentage.textContent =
+                Math.round(percentageValue) + "%";
+
+
+            // Atualiza a barra.
+
+            rpmBarFill.style.width = percentageValue + "%";
+
+
+            // Calcula a cor.
+
+            // Verde -> Amarelo -> Laranja -> Vermelho.
+
+            const hue = 120 - (percentage * 120);
+
+            const color = `hsl(${hue}, 100%, 50%)`;
+
+
+            gauge.style.stroke = color;
+
+            gauge.style.filter =
+                `drop-shadow(0 0 8px hsl(${hue}, 100%, 50%))`;
+
+            rpmNumber.style.fill = color;
+
+            rpmBarFill.style.background = color;
+
+            rpmBarFill.style.boxShadow =
+                `0 0 12px hsl(${hue}, 100%, 50%)`;
+
+
+            // Registra o pico da sessão.
+
+            if (rpm > maximumRPM) {
+
+                maximumRPM = rpm;
+
+                peakRPM.textContent =
+                    Math.round(maximumRPM).toLocaleString("pt-BR");
+
+            }
+
+        }
+
+
+        // Busca os dados do CGI.
+
+        async function readRPM() {
+
+            try {
+
+                const response = await fetch(
+                    "/cgi-bin/rpm.cgi?t=" + Date.now(),
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+                if (!response.ok) {
+
+                    throw new Error("Erro HTTP");
+
+                }
+
+                const data = await response.json();
+
+                const rpm = Number(data.rpm);
+
+                if (!Number.isFinite(rpm)) {
+
+                    throw new Error("RPM inválido");
+
+                }
+
+                updateRPM(rpm);
+
+            }
+
+            catch (error) {
+
+                console.error("Erro ao obter RPM:", error);
+
+            }
+
+        }
+
+
+        // Atualização contínua.
+
+        async function main() {
+
+            while (true) {
+
+                await readRPM();
+
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+            }
+
+        }
+
+
+        // Inicialização.
+
+        main();
+
+    </script>
+
+</body>
+
+</html>
